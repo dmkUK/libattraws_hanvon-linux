@@ -31,6 +31,7 @@ MODULE_LICENSE(DRIVER_LICENSE);
 #define USB_PRODUCT_ID_NXS1513	0x8030
 #define USB_PRODUCT_ID_GP0906	0x8521
 #define USB_PRODUCT_ID_APPIV0906	0x8532
+#define USB_PRODUCT_ID_GP0604	0x8563
 
 #define USB_AM_PACKET_LEN   10
 
@@ -285,6 +286,55 @@ static inline void handle_AM0906(struct hanvon *hanvon)
 	}
 }
 
+
+// GP0604
+static inline void handle_gp0604(struct hanvon *hanvon) 
+{
+
+#define GP0604_XMAX	0x27de
+#define GP0604_YMAX	0x1cfe
+
+    /*printk(KERN_INFO "Hanvon Test : 1x%04x 2x%04x 4x%04x 6x%04x 7x%04x 8x%04x\n\t\tClicked : %s %i/%04x\n", data[1], data[2], data[4], data[6], data[7], data[8], data[6] > 63 ? "true" : "false", data[6], get_unaligned_be16(&data[6]));*/
+
+	unsigned char *data = hanvon->data;
+	struct input_dev *dev = hanvon->dev;
+
+	/*
+	hanvon graphic pal 4, gp0604!
+
+	- data definition. this is not official...
+	[header, 1Byte][event type, 1Byte][x, 2Bytes][y, 2Bytes][pressure, 2Bytes][tilt, 2Bytes]
+	*/
+
+	//printk(KERN_INFO "Hanvon Test : 0x%04x 1x%04x 2x%04x 4x%04x 6x%04x 7x%04x 8x%04x\n\t\tClicked : %s %i/%04x\n", data[0], data[1], data[2], data[4], data[6], data[7], data[8], data[6] > 63 ? "true" : "false", data[6], get_unaligned_be16(&data[6]));
+
+	// printk(KERN_INFO "Hanvon Test : 0x%04x 1x%04x 2x%04x 3x%04x 4x%04x 6x%04x 7x%04x 8x%04x\n\t\tClicked : %s %i/%04x\n", data[0], data[1], data[2], data[3],data[4], data[6], data[7], data[8], data[6] > 63 ? "true" : "false", data[6], get_unaligned_be16(&data[6]));
+
+	switch( data[0] ) {
+
+	case 0x01:	/* pen button event */
+		input_report_abs(dev, ABS_X, get_unaligned_le16(&data[2]) * 0xffff / GP0604_XMAX);
+		input_report_abs(dev, ABS_Y, get_unaligned_le16(&data[4]) * 0xffff / GP0604_YMAX);
+		input_report_key(dev, BTN_LEFT, data[1] & 0x01); /* pen touches the surface */
+		input_report_key(dev, BTN_RIGHT, data[1] & 0x02); /* right stylus button pressed (emulate right mouse click) */
+		input_report_key(dev, BTN_MIDDLE, data[1] & 0x04); /* middle stylus button pressed (emulate right mouse click) */
+		input_report_key(dev, BTN_0, data[1] & 0x08); /* stylus button pressed (emulate right mouse click) */
+		
+		/* pressure change */
+		input_report_abs(dev, ABS_PRESSURE, (data[7]<<8|data[6]));
+		break;
+	
+	case 0x0c:	/* key press on the tablet */
+		input_report_key(dev, BTN_0, data[3] & 0x01);
+		input_report_key(dev, BTN_1, data[3] & 0x02);
+		input_report_key(dev, BTN_2, data[3] & 0x04);
+		input_report_key(dev, BTN_3, data[3] & 0x08);
+		input_report_key(dev, BTN_4, data[3] & 0x10);
+		break;
+	}
+}
+
+
 static void hanvon_irq(struct urb *urb)
 {
 	struct hanvon *hanvon = urb->context;
@@ -306,6 +356,9 @@ static void hanvon_irq(struct urb *urb)
 				case USB_PRODUCT_ID_GP0504:
 				    handle_gp0504(hanvon);
 				    break;
+				case USB_PRODUCT_ID_GP0604:
+					handle_gp0604(hanvon);
+					break;
 				default:
 					handle_default(hanvon);
 					break;
@@ -347,6 +400,7 @@ static struct usb_device_id hanvon_ids[] = {
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_NXS1513) },
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_GP0906) },
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_APPIV0906)},
+	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_GP0604) },
 	{}
 };
 
