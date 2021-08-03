@@ -1,3 +1,4 @@
 sudo rmmod hanvon
 make all
 sudo insmod ./hanvon.ko
+sudo tail -f /var/log/syslog
