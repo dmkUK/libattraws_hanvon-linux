@@ -31,6 +31,7 @@ MODULE_LICENSE(DRIVER_LICENSE);
 #define USB_PRODUCT_ID_NXS1513	0x8030
 #define USB_PRODUCT_ID_GP0906	0x8521
 #define USB_PRODUCT_ID_APPIV0906	0x8532
+#define USB_PRODUCT_ID_ESP1030A	0x880A
 
 #define USB_AM_PACKET_LEN   10
 
@@ -303,6 +304,7 @@ static void hanvon_irq(struct urb *urb)
 				case USB_PRODUCT_ID_APPIV0906:
 					handle_appiv0906(hanvon);
 					break;
+                case USB_PRODUCT_ID_ESP1030A:
 				case USB_PRODUCT_ID_GP0504:
 				    handle_gp0504(hanvon);
 				    break;
@@ -347,6 +349,7 @@ static struct usb_device_id hanvon_ids[] = {
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_NXS1513) },
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_GP0906) },
 	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_APPIV0906)},
+	{ USB_DEVICE(USB_VENDOR_ID_HANVON, USB_PRODUCT_ID_ESP1030A)},
 	{}
 };
 
